@@ -74,7 +74,6 @@ class RegisterUserViewModel : ViewModel() {
         try {
             _uiState.value.validateAllField()
             return true
-            // register in database or invoke API
         } catch (e: Exception) {
             _uiState.value = _uiState.value.copy(errorMessage = e.message ?: "Unknown error")
             return false

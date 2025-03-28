@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.mochilando.Screens.MenuScreen
 import com.example.mochilando.Screens.RegisterUserMainScreen
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +30,8 @@ class MainActivity : ComponentActivity() {
                         startDestination = "login"
                     ) {
                         composable("login") { LoginScreen(navController) }
-                        composable("register") { RegisterUserMainScreen() }
+                        composable("register") { RegisterUserMainScreen(navController) }
+                        composable("menu") { MenuScreen() }
                     }
                 }
             }
