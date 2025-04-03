@@ -5,10 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddLocation
+import androidx.compose.material.icons.filled.AirplanemodeActive
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
-import com.example.mochilando.Screens.ProfileScreen
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -54,8 +52,8 @@ fun MenuScreen() {
                 .padding(innerPadding),
             contentAlignment = Alignment.Center
         ) {
-            NavHost(navController = navController, startDestination = "MainScreen") {
-                composable("MainScreen") { MainScreen() }
+            NavHost(navController = navController, startDestination = "HomeScreen") {
+                composable("HomeScreen") { HomeScreen() }
                 composable("Profile") { ProfileScreen(navController) }
                 composable("About") { AboutScreen() }
             }
@@ -70,15 +68,15 @@ fun BottomNavBar(navController: NavController) {
 
     NavigationBar(containerColor = Color.White) {
         NavigationBarItem(
-            selected = currentDestination?.hierarchy?.any { it.route == "MainScreen" } == true,
-            onClick = { navController.navigate("MainScreen") },
+            selected = currentDestination?.hierarchy?.any { it.route == "HomeScreen" } == true,
+            onClick = { navController.navigate("HomeScreen") },
             icon = { Icon(Icons.Default.Home, contentDescription = "Início", tint = Color(0xFF135937)) },
             label = { Text("Início", color = Color(0xFF135937)) }
         )
         NavigationBarItem(
             selected = currentDestination?.hierarchy?.any { it.route == "Profile" } == true,
             onClick = { navController.navigate("Profile") },
-            icon = { Icon(Icons.Default.AddLocation, contentDescription = "Nova Viagem", tint = Color(0xFF135937)) },
+            icon = { Icon(Icons.Default.AirplanemodeActive, contentDescription = "Nova Viagem", tint = Color(0xFF135937)) },
             label = { Text("Nova Viagem", color = Color(0xFF135937)) }
         )
         NavigationBarItem(
@@ -91,7 +89,7 @@ fun BottomNavBar(navController: NavController) {
 }
 
 @Composable
-fun MainScreen() {
+fun HomeScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text(text = "Tela Principal", fontSize = 18.sp, color = Color(0xFF135937))
     }
