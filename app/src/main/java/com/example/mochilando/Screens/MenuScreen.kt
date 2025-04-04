@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -33,9 +34,10 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MenuScreen() {
     val navController = rememberNavController()
+    val viewModel = remember { TravelViewModel() }
 
     Scaffold(
-        containerColor = Color(0xFFF5F5F5), // Cor de fundo suave
+        containerColor = Color(0xFFF5F5F5),
         topBar = {
             TopAppBar(
                 title = { Text(text = "Mochilando", color = Color.White) },
@@ -53,10 +55,11 @@ fun MenuScreen() {
             contentAlignment = Alignment.Center
         ) {
             NavHost(navController = navController, startDestination = "HomeScreen") {
-                composable("HomeScreen") { HomeScreen() }
-                composable("Profile") { ProfileScreen(navController) }
+                composable("HomeScreen") { HomeScreen(viewModel) }
+                composable("Profile") { ProfileScreen(navController, viewModel) }
                 composable("About") { AboutScreen() }
             }
+
         }
     }
 }

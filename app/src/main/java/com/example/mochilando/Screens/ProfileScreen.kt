@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -18,121 +19,172 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import java.text.NumberFormat
-import java.util.*
+import java.util.Calendar
+import java.util.Locale
 
 @Composable
-fun ProfileScreen(navController: NavController) {
+fun ProfileScreen(navController: NavController, viewModel: TravelViewModel) {
 
     val context = LocalContext.current
 
     var destination by remember { mutableStateOf("") }
-    var tripType by remember { mutableStateOf("Lazer") }
+    var travelType by remember { mutableStateOf("Lazer") }
     var startDate by remember { mutableStateOf("") }
     var endDate by remember { mutableStateOf("") }
-    var budget by remember { mutableStateOf("") }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Nova Viagem", fontSize = 20.sp)
+    var budgetValue by remember { mutableStateOf(0L) }
+    var budgetText by remember { mutableStateOf("R$ 0,00") }
 
-        Spacer(modifier = Modifier.height(16.dp))
+    Scaffold(
+        containerColor = Color(0xFFF5F5F5),
+        topBar = {  },
 
-        OutlinedTextField(
-            value = destination,
-            onValueChange = { destination = it },
-            label = { Text("Destino") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(26.dp))
-
-        Text(text = "Motivo da Viagem")
-        Row(modifier = Modifier.fillMaxWidth()) {
-            RadioButton(selected = tripType == "Lazer", onClick = { tripType = "Lazer" })
-            Text("Lazer", modifier = Modifier.padding(start = 8.dp))
-            Spacer(modifier = Modifier.width(26.dp))
-            RadioButton(selected = tripType == "Negócio", onClick = { tripType = "Negócio" })
-            Text("Negócio", modifier = Modifier.padding(start = 8.dp))
-        }
-
-        Spacer(modifier = Modifier.height(26.dp))
-
-        OutlinedTextField(
-            value = startDate,
-            onValueChange = { },
-            label = { Text("Data de Início") },
-            readOnly = true,
-            trailingIcon = {
-                IconButton(onClick = { selectDate(context) { startDate = it } }) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = "Selecionar data")
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        OutlinedTextField(
-            value = endDate,
-            onValueChange = { },
-            label = { Text("Data Final") },
-            readOnly = true,
-            trailingIcon = {
-                IconButton(onClick = { selectDate(context) { endDate = it } }) {
-                    Icon(Icons.Default.CalendarMonth, contentDescription = "Selecionar data")
-                }
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Campo de orçamento formatado com "R$"
-        OutlinedTextField(
-            value = budget,
-            onValueChange = { input ->
-                val cleanInput = input.filter { it.isDigit() } // Permite apenas números
-                budget = formatCurrency(cleanInput)
-            },
-            label = { Text("Orçamento") },
-            placeholder = { Text("Digite o orçamento estimado") },
-            keyboardOptions = KeyboardOptions.Default.copy(
-                keyboardType = KeyboardType.Number,
-                imeAction = ImeAction.Done
-            ),
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // Botão para salvar os dados
-        Button(
-            onClick = {
-                saveTripInfo(destination, tripType, startDate, endDate, budget)
-            },
-            modifier = Modifier.fillMaxWidth()
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Salvar")
+            Text(text = "Nova Viagem", fontSize = 20.sp, color = Color(0xFF135937))
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = destination,
+                onValueChange = { destination = it },
+                label = { Text("Destino") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(26.dp))
+
+            Text(text = "Tipo de Viagem", fontSize = 20.sp, color = Color(0xFF135937))
+
+            Spacer(modifier = Modifier.height(26.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                RadioButton(selected = travelType == "Lazer", onClick = { travelType = "Lazer" })
+                Text("Lazer", fontSize = 20.sp, color = Color(0xFF135937))
+                RadioButton(selected = travelType == "Negócios", onClick = { travelType = "Negócios" })
+                Text("Negócios", fontSize = 20.sp, color = Color(0xFF135937))
+            }
+
+            Spacer(modifier = Modifier.height(26.dp))
+
+            OutlinedTextField(
+                value = startDate,
+                onValueChange = { },
+                label = { Text("Data de Início") },
+                readOnly = true,
+                trailingIcon = {
+
+                    IconButton(onClick = {
+                        selectDate(context) { selectedDate ->
+                            startDate = selectedDate
+                        }
+                    }) {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = "Selecionar data")
+                    }
+
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(26.dp))
+
+            OutlinedTextField(
+                value = endDate,
+                onValueChange = { },
+                label = { Text("Data Final") },
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = {
+                        // Verifica se a data de início foi definida
+                        if (startDate.isNotEmpty()) {
+                            val parts = startDate.split("/")
+                            if (parts.size == 3) {
+                                val calendarStart = Calendar.getInstance()
+                                calendarStart.set(parts[2].toInt(), parts[1].toInt() - 1, parts[0].toInt())
+
+                                selectDate(context, calendarStart.timeInMillis) { selectedDate ->
+                                    endDate = selectedDate
+                                }
+                            }
+                        } else {
+
+                        }
+                    }) {
+                        Icon(Icons.Default.CalendarMonth, contentDescription = "Selecionar data")
+                    }
+
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(26.dp))
+
+            // Campo de orçamento formatado com "R$"
+            OutlinedTextField(
+                value = budgetText,
+                onValueChange = { input ->
+                    val cleanInput = input.filter { it.isDigit() } // Apenas números
+                    val newValue = cleanInput.toLongOrNull() ?: 0L
+                    budgetValue = newValue
+                    budgetText = formatCurrency(newValue)
+                },
+                label = { Text("Orçamento") },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = {
+                    val newTrip = Trip(destination, travelType, startDate, endDate, budgetText)
+                    viewModel.addTrip(newTrip)
+                    navController.navigate("HomeScreen") // Volta para HomeScreen
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF135937))
+            ) {
+                Text("Salvar", color = Color.White)
+            }
         }
     }
 }
 
 // Função para exibir o DatePickerDialog
-fun selectDate(context: Context, onDateSelected: (String) -> Unit) {
+fun selectDate(context: Context, minDate: Long? = null, onDateSelected: (String) -> Unit) {
     val calendar = Calendar.getInstance()
     val year = calendar.get(Calendar.YEAR)
     val month = calendar.get(Calendar.MONTH)
     val day = calendar.get(Calendar.DAY_OF_MONTH)
 
-    DatePickerDialog(context, { _, selectedYear, selectedMonth, selectedDay ->
+    val datePickerDialog = DatePickerDialog(context, { _, selectedYear, selectedMonth, selectedDay ->
         onDateSelected("$selectedDay/${selectedMonth + 1}/$selectedYear")
-    }, year, month, day).show()
+    }, year, month, day)
+
+    // Define a data mínima, se fornecida
+    if (minDate != null) {
+        datePickerDialog.datePicker.minDate = minDate
+    } else {
+        datePickerDialog.datePicker.minDate = calendar.timeInMillis // data de hoje por padrão
+    }
+
+    datePickerDialog.show()
 }
 
+
+// Função para salvar as informações da viagem
 fun saveTripInfo(destination: String, tripType: String, startDate: String, endDate: String, budget: String) {
     Log.d("TripInfo", "Destino: $destination")
     Log.d("TripInfo", "Tipo: $tripType")
@@ -141,13 +193,8 @@ fun saveTripInfo(destination: String, tripType: String, startDate: String, endDa
     Log.d("TripInfo", "Orçamento: $budget")
 }
 
-// Função para formatar o orçamento como moeda
-fun formatCurrency(input: String): String {
-    return if (input.isNotEmpty()) {
-        val number = input.toLongOrNull() ?: 0L
-        val formatted = NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(number / 100.0)
-        formatted.replace("R$ ", "R$") // Ajuste para remover espaço extra
-    } else {
-        ""
-    }
+// Função para formatar o orçamento corretamente
+fun formatCurrency(value: Long): String {
+    val formatted = NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(value / 100.0)
+    return formatted.replace("R$ ", "R$")
 }
