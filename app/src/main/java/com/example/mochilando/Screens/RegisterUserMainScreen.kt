@@ -94,7 +94,7 @@ fun RegisterUserFields(
         Spacer(modifier = Modifier.height(4.dp))
 
         MyTextField(
-            label = "User",
+            label = "Nome",
             value = registerUser.value.user,
             onValueChange = { registerUserViewModel.onUserChange(it) },
         )
