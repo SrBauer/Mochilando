@@ -1,6 +1,10 @@
 plugins {
+    val room_version = "2.6.1"
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("com.google.devtools.ksp") version "2.0.21-1.0.27" apply true
+    id("androidx.room") version "$room_version" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" // this version matches your Kotlin version
 }
 
 android {
@@ -39,9 +43,7 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.1"
-    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -51,6 +53,17 @@ android {
 
 dependencies {
     val nav_version = "2.8.9"
+
+    val room_version = "2.6.1"
+
+    implementation("androidx.room:room-runtime:$room_version")
+
+    // If this project uses any Kotlin source, use Kotlin Symbol Processing (KSP)
+    // See Add the KSP plugin to your project
+    ksp("androidx.room:room-compiler:$room_version")
+
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation("androidx.room:room-ktx:$room_version")
 
     implementation( "androidx.navigation:navigation-compose:$nav_version")
 
