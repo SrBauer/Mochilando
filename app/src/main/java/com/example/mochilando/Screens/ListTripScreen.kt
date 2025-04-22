@@ -1,6 +1,8 @@
 package com.example.mochilando.Screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
@@ -10,92 +12,101 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.example.mochilando.DataBase.AppDatabase
 import com.example.mochilando.Entity.Trip
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ListTripsScreen() {
     val context = LocalContext.current
     val tripDao = AppDatabase.getDatabase(context).tripDao()
+    val coroutineScope = rememberCoroutineScope()
 
     var trips by remember { mutableStateOf(emptyList<Trip>()) }
     var tripToDelete by remember { mutableStateOf<Trip?>(null) }
 
-    // Carrega as trips na inicialização
+    // Carregar viagens ao iniciar
     LaunchedEffect(Unit) {
         trips = tripDao.getAllTrips().sortedByDescending { it.id }
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
-        trips.forEach { trip ->
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp),
-                elevation = CardDefaults.cardElevation(8.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Destiny: ${trip.destiny}", style = MaterialTheme.typography.bodyLarge)
-                    Text("Type: ${trip.type}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Start: ${formatDate(trip.startDate)}", style = MaterialTheme.typography.bodyMedium)
-                    Text("End: ${formatDate(trip.endDate)}", style = MaterialTheme.typography.bodyMedium)
-                    Text("Budget: R$ ${"%.2f".format(trip.budget)}", style = MaterialTheme.typography.bodyMedium)
+    Scaffold(
+        topBar = {
+            TopAppBar(title = { Text("Minhas Viagens") })
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(trips) { trip ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    elevation = CardDefaults.cardElevation(4.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text("Destino: ${trip.destiny}", style = MaterialTheme.typography.titleMedium)
+                        Text("Tipo: ${trip.type}", style = MaterialTheme.typography.bodyMedium)
+                        Text("Início: ${formatDate(trip.startDate)}", style = MaterialTheme.typography.bodyMedium)
+                        Text("Término: ${formatDate(trip.endDate)}", style = MaterialTheme.typography.bodyMedium)
+                        Text("Orçamento: R$ ${"%.2f".format(trip.budget)}", style = MaterialTheme.typography.bodyMedium)
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(12.dp))
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Button(
-                            onClick = { tripToDelete = trip },
-                            colors = ButtonDefaults.buttonColors(MaterialTheme.colorScheme.error)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Remove",
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Text("Remove")
+                            OutlinedButton(
+                                onClick = { tripToDelete = trip },
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.error
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Remover",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Remover")
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-
-    if (tripToDelete != null) {
-        AlertDialog(
-            onDismissRequest = { tripToDelete = null },
-            title = { Text("Confirm Remove") },
-            text = { Text("Are you sure you want to remove this trip?") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        CoroutineScope(Dispatchers.IO).launch {
-                            tripToDelete?.let { trip ->
+        tripToDelete?.let { trip ->
+            AlertDialog(
+                onDismissRequest = { tripToDelete = null },
+                title = { Text("Confirmar exclusão") },
+                text = { Text("Deseja realmente remover esta viagem?") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            coroutineScope.launch(Dispatchers.IO) {
                                 tripDao.deleteTrip(trip)
-                                trips = tripDao.getAllTrips().sortedByDescending { it.id }
+                                val updatedTrips = tripDao.getAllTrips().sortedByDescending { it.id }
+                                trips = updatedTrips
                                 tripToDelete = null
                             }
                         }
+                    ) {
+                        Text("Confirmar")
                     }
-                ) {
-                    Text("Confirm")
+                },
+                dismissButton = {
+                    TextButton(onClick = { tripToDelete = null }) {
+                        Text("Cancelar")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { tripToDelete = null }
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 }
 

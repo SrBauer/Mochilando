@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,12 +24,17 @@ import androidx.navigation.compose.rememberNavController
 import com.example.mochilando.Components.ErrorDialog
 import com.example.mochilando.Components.MyPasswordField
 import com.example.mochilando.Components.MyTextField
+import com.example.mochilando.DataBase.AppDatabase
 import com.example.mochilando.R
 import com.example.registeruser.ui.theme.RegisterUserTheme
 
 @Composable
 fun RegisterUserMainScreen(navController: NavController) {
-    val registerUserViewModel: RegisterUserViewModel = viewModel()
+    val ctx = LocalContext.current
+    val userDao = AppDatabase.getDatabase(ctx).userDao()
+    val registerUserViewModel : RegisterUserViewModel = viewModel(
+        factory = UserViewModelFactory(userDao)
+    )
 
     Scaffold(
         containerColor = Color(0xFFF5F5F5) // Cor de fundo suave
@@ -87,8 +93,8 @@ fun RegisterUserFields(
     ) {
         MyTextField(
             label = "Nome de usuário",
-            value = registerUser.value.username,
-            onValueChange = { registerUserViewModel.onUsernameChange(it) },
+            value = registerUser.value.user,
+            onValueChange = { registerUserViewModel.onUserChange(it) },
         )
 
         Spacer(modifier = Modifier.height(4.dp))
@@ -133,10 +139,7 @@ fun RegisterUserFields(
             shape = RoundedCornerShape(12.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF135937)), // Cor do botão
             onClick = {
-                if (registerUserViewModel.register()) {
-                    Toast.makeText(ctx, "Usuário cadastrado!", Toast.LENGTH_SHORT).show()
-                    onNavigateToMenu()
-                }
+                registerUserViewModel.register()
             }
         ) {
             Text(text = "Registrar", fontSize = 18.sp, color = Color.White)
@@ -145,10 +148,20 @@ fun RegisterUserFields(
         if (registerUser.value.errorMessage.isNotBlank()) {
             ErrorDialog(
                 error = registerUser.value.errorMessage,
-                onDismissRequest = { registerUserViewModel.cleanErrorMessage() }
+                onDismissRequest = { registerUserViewModel.cleanDisplayValues() }
             )
         }
     }
+
+    LaunchedEffect(registerUser.value.isSaved) {
+        if(registerUser.value.isSaved){
+            Toast.makeText(ctx, "User registered",
+                Toast.LENGTH_SHORT).show()
+
+            onNavigateToMenu()
+        }
+    }
+
 }
 
 @Preview(showSystemUi = true, showBackground = true)

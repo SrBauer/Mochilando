@@ -34,7 +34,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MenuScreen() {
     val navController = rememberNavController()
-    val viewModel = remember { TravelViewModel() }
 
     Scaffold(
         containerColor = Color(0xFFF5F5F5),
@@ -55,9 +54,10 @@ fun MenuScreen() {
             contentAlignment = Alignment.Center
         ) {
             NavHost(navController = navController, startDestination = "HomeScreen") {
-                composable("HomeScreen") { HomeScreen(viewModel) }
-                composable("Profile") { ProfileScreen(navController, viewModel) }
+                composable("HomeScreen") { HomeScreen() }
+                composable("Profile") { ProfileScreen(navController) }
                 composable("About") { AboutScreen() }
+                composable("listTrip") { ListTripsScreen() }
             }
 
         }
@@ -94,7 +94,7 @@ fun BottomNavBar(navController: NavController) {
 @Composable
 fun HomeScreen() {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(text = "Tela Principal", fontSize = 18.sp, color = Color(0xFF135937))
+        Text(text = "Bem-Vindo ao Mochilando", fontSize = 18.sp, color = Color(0xFF135937))
     }
 }
 
